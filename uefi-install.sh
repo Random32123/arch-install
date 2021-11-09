@@ -6,8 +6,7 @@ timedatectl set-timezone $timezonevar
 
 fdisk -l
 read -p 'Root Drive: ' drivevar
-fdisk $drivevar
-sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk ${TGTDEV}
+sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk $drivevar
   g # clear the in memory partition table
   n # new partition
   1 # partition number 1
