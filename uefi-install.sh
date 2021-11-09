@@ -35,5 +35,39 @@ sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk ${TGTDEV}
   q # and we're done
 EOF
 
+echo 'Root Partition is always parition 3, Swap is always parition 2, EFI is always partition 1'
+read -p 'Root Parition (eg. /dev/sda3): ' rootvar
+read -p 'Swap Partition (eg. /dev/sda2): ' swapvar
+read -p 'EFI Partition (eg. /dev/sda1): ' efivar
 
+mount $rootvar /mnt
+swapon $swapvar
 
+# Package Installation
+pacstrap /mnt base linux linux-lts linux-headers linux-lts-headers linux-firmware networkmanager nano vim man-db
+
+genfstab -U /mnt >> /mnt/etc/fstab
+
+arch-chroot /mnt
+
+echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+locale-gen
+
+read -p 'Hostname: ' hostnamevar
+echo $hostnamevar >> /etc/hostname
+
+pacman -S grub efibootmgr dosfstools os-prober mtools
+
+mkdir /boot/EFI
+mount $efivar /boot/EFI
+grub-install --target=x86_64-efi --bootloader-id=grub_uefi --recheck
+mkdir /boot/grub/locale
+cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
+grub-mkconfig -o /boot/grub/grub.cfg
+
+passwd
+
+echo "Arch Installed! There are 3 more commands to finish,"
+echo "exit"
+echo "umount -a"
+echo "reboot"
